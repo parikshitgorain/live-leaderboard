@@ -1,78 +1,137 @@
-<div id="leaderboard"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard ⚡</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
 
-<script>
-const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQLuX2Ta2veASjc85NnEfOIDXXKzVUGm9m-ag_ubn202I8nxmq27_B3UoNS2_h8yEzuVQWOKTP4yKVj/pub?output=csv';
+    .stars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      z-index: 0;
+    }
 
-async function loadLeaderboard() {
-  try {
-    const res = await fetch(sheetURL);
-    const data = await res.text();
-    console.log("Raw CSV Data:", data);
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      width: 2px;
+      height: 2px;
+      animation: fall linear infinite;
+    }
 
-    const rows = data
-      .trim()
-      .split('\n')
-      .map(r => {
-        const row = r.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-        return row ? row.map(cell => cell.replace(/^"|"$/g, '')) : [];
-      })
-      .filter(row => row.length > 0);
+    @keyframes fall {
+      from {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
 
-    console.log("Parsed Rows:", rows);
+    .leaderboard-container {
+      position: relative;
+      z-index: 1;
+      max-width: 95%;
+      width: 800px;
+      margin: 80px auto;
+      background: rgba(30, 30, 30, 0.95);
+      border: 2px solid #ffffff20;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 20px #ffffff20;
+    }
 
-    const headers = rows.shift();
-    const wagerIndex = headers.findIndex(h => h.toLowerCase().includes("wager"));
-    
-    // Sort by wager amount descending
-    const sorted = rows.sort((a, b) => {
-      const aVal = parseFloat((a[wagerIndex] || "0").replace(/[^\d.]/g, ''));
-      const bVal = parseFloat((b[wagerIndex] || "0").replace(/[^\d.]/g, ''));
-      return bVal - aVal;
-    });
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #fff;
+    }
 
-    const table = document.createElement('table');
-    table.style.width = '100%';
-    table.style.borderCollapse = 'collapse';
-    table.style.marginTop = '10px';
-    table.style.color = 'white';
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
 
-    const thead = document.createElement('thead');
-    const trHead = document.createElement('tr');
-    headers.forEach(h => {
-      const th = document.createElement('th');
-      th.textContent = h;
-      th.style.padding = '10px';
-      th.style.borderBottom = '2px solid gray';
-      th.style.textAlign = 'left';
-      th.style.background = '#333';
-      trHead.appendChild(th);
-    });
-    thead.appendChild(trHead);
-    table.appendChild(thead);
+    th, td {
+      padding: 12px;
+      border: 1px solid #ffffff30;
+    }
 
-    const tbody = document.createElement('tbody');
-    sorted.forEach(row => {
-      const tr = document.createElement('tr');
-      row.forEach(cell => {
-        const td = document.createElement('td');
-        td.textContent = cell;
-        td.style.padding = '8px';
-        td.style.borderBottom = '1px solid #444';
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
+    th {
+      background-color: #222;
+      color: #fff;
+    }
 
-    const container = document.getElementById('leaderboard');
-    container.innerHTML = ''; // Clear any previous content
-    container.appendChild(table);
+    td {
+      color: #ddd;
+    }
 
-  } catch (err) {
-    console.error('Leaderboard fetch failed:', err);
-    document.getElementById('leaderboard').textContent = 'Failed to load leaderboard.';
-  }
-}
+    @media screen and (max-width: 600px) {
+      .leaderboard-container {
+        width: 95%;
+        margin: 20px auto;
+        padding: 10px;
+      }
 
-loadLeaderboard();
-</script>
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      th, td {
+        font-size: 0.9rem;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" id="star-container"></div>
+
+  <div class="leaderboard-container">
+    <h1>Leaderboard ⚡</h1>
+    <div id="leaderboard"></div>
+  </div>
+
+  <script>
+    const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQLuX2Ta2veASjc85NnEfOIDXXKzVUGm9m-ag_ubn202I8nxmq27_B3UoNS2_h8yEzuVQWOKTP4yKVj/pub?output=csv';
+
+    async function loadLeaderboard() {
+      try {
+        const res = await fetch(sheetURL);
+        const data = await res.text();
+        const rows = data.trim().split('\n').map(r => r.split(','));
+
+        const headers = rows.shift();
+        const scoreIdx = headers.indexOf('Wager amount');
+
+        const sorted = rows.sort((a, b) => parseFloat(b[scoreIdx]) - parseFloat(a[scoreIdx]));
+
+        const table = document.createElement('table');
+        const thead = document.createElement('thead');
+        const trHead = document.createElement('tr');
+
+        headers.forEach(h => {
+          const th = document.createElement('th');
+          th.textContent = h;
+          trHead.appendChild(th);
+        });
+
+        thead.appendChild(trHead);
+        table.appendChild(thead);
