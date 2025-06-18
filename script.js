@@ -2,20 +2,18 @@ const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQLuX2Ta2veASj
 
 async function loadLeaderboard() {
   const res = await fetch(sheetURL);
-  const csvText = await res.text();
+  const data = await res.text();
+  const rows = data.trim().split('\n').map(r => r.split(','));
 
-  const parsed = Papa.parse(csvText, { header: true });
-  const rows = parsed.data;
+  const headers = rows.shift();
+  const scoreIdx = headers.indexOf('Score');
 
-  // Sort by Score or Wager amount
-  const sorted = rows.sort((a, b) => parseFloat(b['Wager amount'].replace(/[^0-9.-]+/g, "")) - parseFloat(a['Wager amount'].replace(/[^0-9.-]+/g, "")));
+  const sorted = rows.sort((a, b) => +b[scoreIdx] - +a[scoreIdx]);
 
   const table = document.createElement('table');
-
-  // Table Header
   const thead = document.createElement('thead');
   const trHead = document.createElement('tr');
-  Object.keys(rows[0]).forEach(h => {
+  headers.forEach(h => {
     const th = document.createElement('th');
     th.textContent = h;
     trHead.appendChild(th);
@@ -23,19 +21,18 @@ async function loadLeaderboard() {
   thead.appendChild(trHead);
   table.appendChild(thead);
 
-  // Table Body
   const tbody = document.createElement('tbody');
   sorted.forEach(row => {
     const tr = document.createElement('tr');
-    Object.values(row).forEach(cell => {
+    row.forEach(cell => {
       const td = document.createElement('td');
-      td.textContent = cell;
+      td.textContent = cell.replace(/^"(.*)"$/, '$1').replace(/"$/, '');
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
-
   table.appendChild(tbody);
+
   document.getElementById('leaderboard').appendChild(table);
 }
 
