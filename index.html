@@ -52,45 +52,49 @@
     .container {
       position: relative;
       z-index: 2;
-      max-width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-      margin: 5% auto;
-      background: rgba(20, 20, 20, 0.95);
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      box-shadow: 0 0 16px rgba(255, 255, 255, 0.3);
+      width: 100%;
+      max-width: 860px; /* Reduced width */
+      margin: 40px auto;
+      background: rgba(20, 20, 20, 0.96);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.15); /* Shadow added */
       padding: 24px;
+      overflow: hidden;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 24px;
-      font-size: 28px;
+      margin-bottom: 18px;
+      font-size: 26px;
       color: #fff;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      color: white;
-      font-size: 16px;
+      font-size: 15px;
     }
 
     th, td {
-      padding: 10px 8px;
+      padding: 10px 6px;
       text-align: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     th {
       background-color: rgba(255, 255, 255, 0.1);
+      font-weight: 600;
     }
 
-    @media (max-width: 600px) {
+    tbody tr:nth-child(even) {
+      background-color: rgba(255, 255, 255, 0.025);
+    }
+
+    @media (max-width: 768px) {
       .container {
+        max-width: 95%;
         padding: 16px;
-        font-size: 14px;
       }
 
       table {
@@ -123,7 +127,7 @@
   </div>
 
   <script>
-    // Generate animated stars
+    // Create falling stars
     function createStars(count) {
       const container = document.getElementById("stars-bg");
       for (let i = 0; i < count; i++) {
@@ -139,13 +143,13 @@
 
     createStars(100);
 
-    // Fetch leaderboard data from Google Sheet CSV
+    // Load CSV from Google Sheets
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQLuX2Ta2veASjc85NnEfOIDXXKzVUGm9m-ag_ubn202I8nxmq27_B3UoNS2_h8yEzuVQWOKTP4yKVj/pub?gid=0&single=true&output=csv';
 
     fetch(csvUrl)
       .then(response => response.text())
       .then(text => {
-        const rows = text.trim().split('\n').slice(1); // skip header
+        const rows = text.trim().split('\n').slice(1);
         const tbody = document.querySelector("#leaderboard tbody");
 
         rows.forEach(row => {
