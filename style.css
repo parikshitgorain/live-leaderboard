@@ -8,7 +8,7 @@ html, body {
   height: 100%;
   font-family: 'Segoe UI', sans-serif;
   background: black;
-  overflow: hidden;
+   overflow: auto;
 }
 
 /* Paper texture background */
