@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Leaderboard ⚡</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="stars-bg" id="stars-bg"></div>
+
+  <div class="container">
+    <h1>Leaderboard ⚡</h1>
+    <div class="table-wrapper">
+      <table id="leaderboard">
+        <thead>
+          <tr>
+            <th>Sl No</th>
+            <th>Username</th>
+            <th>Wager Amount</th>
+            <th>Prize</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Create stars
+    function createStars(count) {
+      const container = document.getElementById("stars-bg");
+      for (let i = 0; i < count; i++) {
+        const star = document.createElement("div");
+        star.classList.add("star");
+        star.style.left = Math.random() * 100 + "%";
+        star.style.top = Math.random() * 100 + "%";
+        star.style.animationDuration = (1 + Math.random() * 4) + "s";
+        star.style.animationDelay = Math.random() * 4 + "s";
+        container.appendChild(star);
+      }
+    }
+
+    createStars(100);
+
+    // Load leaderboard data
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQLuX2Ta2veASjc85NnEfOIDXXKzVUGm9m-ag_ubn202I8nxmq27_B3UoNS2_h8yEzuVQWOKTP4yKVj/pub?gid=0&single=true&output=csv';
+
+    fetch(csvUrl)
+      .then(response => response.text())
+      .then(text => {
+        const rows = text.trim().split('\n').slice(1);
+        const tbody = document.querySelector("#leaderboard tbody");
+        rows.forEach(row => {
+          const cols = row.split(',');
+          const tr = document.createElement('tr');
+          cols.forEach(col => {
+            const td = document.createElement('td');
+            td.textContent = col.replace(/^"|"$/g, '');
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      });
+  </script>
+</body>
+</html>
