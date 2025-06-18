@@ -2,174 +2,163 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Leaderboard ⚡</title>
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
-      background: black;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
       font-family: 'Segoe UI', sans-serif;
-      color: #fff;
+      background: black;
+      color: white;
       overflow: hidden;
     }
 
-    .stars {
-      position: absolute;
+    .stars-bg {
+      position: fixed;
       width: 100%;
       height: 100%;
-      background: transparent;
+      background: black;
       overflow: hidden;
       z-index: 0;
     }
 
     .star {
       position: absolute;
-      background: white;
-      border-radius: 50%;
       width: 2px;
       height: 2px;
+      background: white;
       animation: fall linear infinite;
+      opacity: 0.8;
+      border-radius: 50%;
     }
 
     @keyframes fall {
-      from {
-        transform: translateY(-10px);
+      0% {
+        transform: translateY(-10%);
         opacity: 1;
       }
-      to {
-        transform: translateY(100vh);
+      100% {
+        transform: translateY(110%);
         opacity: 0;
       }
     }
 
-    .leaderboard-container {
+    .container {
       position: relative;
-      z-index: 1;
-      max-width: 95%;
-      width: 800px;
-      margin: 80px auto;
-      background: rgba(30, 30, 30, 0.95);
-      border: 2px solid #ffffff20;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 20px #ffffff20;
+      z-index: 2;
+      max-width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      margin: 5% auto;
+      background: rgba(20, 20, 20, 0.95);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.3);
+      padding: 24px;
     }
 
     h1 {
       text-align: center;
-      font-size: 2rem;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      font-size: 28px;
       color: #fff;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      text-align: center;
+      color: white;
+      font-size: 16px;
     }
 
     th, td {
-      padding: 12px;
-      border: 1px solid #ffffff30;
+      padding: 10px 8px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     th {
-      background-color: #222;
-      color: #fff;
+      background-color: rgba(255, 255, 255, 0.1);
     }
 
-    td {
-      color: #ddd;
-    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 16px;
+        font-size: 14px;
+      }
 
-    @media screen and (max-width: 600px) {
-      .leaderboard-container {
-        width: 95%;
-        margin: 20px auto;
-        padding: 10px;
+      table {
+        font-size: 14px;
       }
 
       h1 {
-        font-size: 1.5rem;
-      }
-
-      th, td {
-        font-size: 0.9rem;
-        padding: 8px;
+        font-size: 22px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="stars" id="star-container"></div>
 
-  <div class="leaderboard-container">
+  <div class="stars-bg" id="stars-bg"></div>
+
+  <div class="container">
     <h1>Leaderboard ⚡</h1>
-    <div id="leaderboard"></div>
+    <table id="leaderboard">
+      <thead>
+        <tr>
+          <th>Sl No</th>
+          <th>Username</th>
+          <th>Wager Amount</th>
+          <th>Prize</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
   <script>
-    const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQLuX2Ta2veASjc85NnEfOIDXXKzVUGm9m-ag_ubn202I8nxmq27_B3UoNS2_h8yEzuVQWOKTP4yKVj/pub?output=csv';
-
-    async function loadLeaderboard() {
-      try {
-        const res = await fetch(sheetURL);
-        const data = await res.text();
-        const rows = data.trim().split('\n').map(r => r.split(','));
-
-        const headers = rows.shift();
-        const scoreIdx = headers.indexOf('Wager amount');
-
-        const sorted = rows.sort((a, b) => parseFloat(b[scoreIdx]) - parseFloat(a[scoreIdx]));
-
-        const table = document.createElement('table');
-        const thead = document.createElement('thead');
-        const trHead = document.createElement('tr');
-
-        headers.forEach(h => {
-          const th = document.createElement('th');
-          th.textContent = h;
-          trHead.appendChild(th);
-        });
-
-        thead.appendChild(trHead);
-        table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-        sorted.forEach(row => {
-          const tr = document.createElement('tr');
-          row.forEach(cell => {
-            const td = document.createElement('td');
-            td.textContent = cell.replace(/^"|"$/g, '');
-            tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
-        });
-
-        table.appendChild(tbody);
-        document.getElementById('leaderboard').appendChild(table);
-      } catch (e) {
-        document.getElementById('leaderboard').textContent = "Failed to load data.";
-        console.error(e);
-      }
-    }
-
-    function createStars(num = 100) {
-      const container = document.getElementById('star-container');
-      for (let i = 0; i < num; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.style.left = `${Math.random() * 100}%`;
-        star.style.top = `${Math.random() * -100}%`;
-        star.style.animationDuration = `${Math.random() * 5 + 3}s`;
-        star.style.opacity = Math.random();
+    // Generate animated stars
+    function createStars(count) {
+      const container = document.getElementById("stars-bg");
+      for (let i = 0; i < count; i++) {
+        const star = document.createElement("div");
+        star.classList.add("star");
+        star.style.left = Math.random() * 100 + "%";
+        star.style.top = Math.random() * 100 + "%";
+        star.style.animationDuration = (1 + Math.random() * 4) + "s";
+        star.style.animationDelay = Math.random() * 4 + "s";
         container.appendChild(star);
       }
     }
 
-    loadLeaderboard();
-    createStars(120);
+    createStars(100);
+
+    // Fetch leaderboard data from Google Sheet CSV
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQLuX2Ta2veASjc85NnEfOIDXXKzVUGm9m-ag_ubn202I8nxmq27_B3UoNS2_h8yEzuVQWOKTP4yKVj/pub?gid=0&single=true&output=csv';
+
+    fetch(csvUrl)
+      .then(response => response.text())
+      .then(text => {
+        const rows = text.trim().split('\n').slice(1); // skip header
+        const tbody = document.querySelector("#leaderboard tbody");
+
+        rows.forEach(row => {
+          const cols = row.split(',');
+          const tr = document.createElement('tr');
+          cols.forEach(col => {
+            const td = document.createElement('td');
+            td.textContent = col.replace(/^"|"$/g, '');
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      });
   </script>
 </body>
 </html>
